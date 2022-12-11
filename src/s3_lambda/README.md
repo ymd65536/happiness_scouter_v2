@@ -1,0 +1,1 @@
+# Amazon Rekognitionと繋がるLambda
