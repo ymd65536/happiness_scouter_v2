@@ -50,7 +50,7 @@ def lambda_handler(event, context):
     reply_token = body_event['replyToken']
 
     # DynamoDBのテーブル名が設定されていない場合はメッセージを出して終了
-    if table_name == "":
+    if table_name is None:
         response_message = "現在、サービスを停止しております。"
         line_bot_api.reply_message(
             reply_token,
