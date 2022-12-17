@@ -1,0 +1,26 @@
+{
+  "destination": "{id}",
+  "events": [
+    {
+      "type": "message",
+      "message": {
+        "type": "image",
+        "id": "{d15}",
+        "contentProvider": {
+          "type": "line"
+        }
+      },
+      "webhookEventId": "{webhookEventId}",
+      "deliveryContext": {
+        "isRedelivery": "False"
+      },
+      "timestamp": 1671228699047,
+      "source": {
+        "type": "user",
+        "userId": "{user_id}"
+      },
+      "replyToken": "{reply_token}",
+      "mode": "active"
+    }
+  ]
+}
