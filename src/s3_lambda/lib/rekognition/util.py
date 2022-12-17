@@ -2,7 +2,7 @@
 import os
 import json
 
-from decimal import Decimal as dec
+from decimal import Decimal
 from boto3.session import Session
 
 
@@ -813,7 +813,7 @@ def get_dynamo_table(table_name):
 def emotions_conv(emotions):
     len_emotions = len(emotions)
     for cnt_i in range(len_emotions):
-        emotions[cnt_i]['Confidence'] = dec.Decimal(
+        emotions[cnt_i]['Confidence'] = Decimal(
             str(round(emotions[cnt_i]['Confidence'], 3)))
     return emotions
 
