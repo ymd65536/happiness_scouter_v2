@@ -102,9 +102,7 @@ def lambda_handler(event, context):
 
             except Exception as e:
                 error_message = str(e)
-                line_bot_api.reply_message(
-                    reply_token,
-                    TextSendMessage(text=error_message))
+                print(error_message)
                 return
 
         elif message_type == 'sticker':
