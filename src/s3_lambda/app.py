@@ -1,34 +1,22 @@
-import decimal
 import os
-import json
 import boto3
 import requests
-from decimal import *
-from boto3.session import Session
+
 from linebot import LineBotApi
 from linebot.models import TextSendMessage
 from linebot.models import FlexSendMessage
 
 # libからインポート
 from lib.rekognition.util import (
-    emotion_flexmessage
-)
-
-# const からインポート
-from const.line_const import (
-    original_message,
-)
-
-from const.bot_const import (
-    level,
-    target_score
+    emotion_flexmessage,
+    emo_json,
+    emotions_conv,
+    get_dynamo_table
 )
 
 channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
 table_name = os.getenv('DYNAMODB_TABLE_NAME', None)
 
-# FlexMessage Image
-flex_ref_image = os.getenv('IMAGE_URL', None)
 line_bot_api = LineBotApi(channel_access_token)
 
 # Headerの生成
@@ -123,100 +111,3 @@ def lambda_handler(event, context):
     except Exception as e:
         print(e)
         return
-
-    combat_power = 0.0
-    for emotion in emotions:
-        emotion_type = emotion['Type']
-        emotion_value = round(emotion['Confidence'], 3)
-        emotion_confidence = str(emotion_value)
-        emotion_score = str(emotion_value*level)
-        if emotion_type == 'HAPPY':
-            emotion_happy = emotion_confidence
-            happy_score = emotion_score
-            combat_power = emotion_value * level
-        elif emotion_type == 'SAD':
-            emotion_sad = emotion_confidence
-            sad_score = emotion_score
-        elif emotion_type == 'ANGRY':
-            emotion_angry = emotion_confidence
-            angry_score = emotion_score
-        elif emotion_type == 'SURPRISED':
-            emotion_surprised = emotion_confidence
-            surprised_score = emotion_score
-        elif emotion_type == 'DISGUSTED':
-            emotion_disgusted = emotion_confidence
-            disgusted_score = emotion_score
-        elif emotion_type == 'CALM':
-            emotion_calm = emotion_confidence
-            calm_score = emotion_score
-        elif emotion_type == 'CONFUSED':
-            emotion_confused = emotion_confidence
-            confused_score = emotion_score
-        elif emotion_type == 'FEAR':
-            emotion_fear = emotion_confidence
-            fear_score = emotion_score
-
-    # 戦闘力がtarget_score 以上であれば、返信メッセージを変更する
-
-    if combat_power >= target_score:
-        print("特別なメッセージで対応")
-        flex_message_json_dict = json.loads(original_message)
-        flex_message_json_dict['hero']['url'] = flex_ref_image
-        flex_message_json_dict['hero']['action']['uri'] = flex_ref_image
-    else:
-        print("通常のメッセージで対応")
-        flex_message_json_dict = json.loads(flex_message)
-
-    combat_power = str(combat_power)
-    flex_message_json_dict['body']['contents'][0]['contents'][1]['contents'][1]['text'] = emotion_happy
-    flex_message_json_dict['body']['contents'][0]['contents'][2]['contents'][1]['text'] = emotion_calm
-    flex_message_json_dict['body']['contents'][0]['contents'][3]['contents'][1]['text'] = emotion_surprised
-    flex_message_json_dict['body']['contents'][0]['contents'][4]['contents'][1]['text'] = emotion_fear
-    flex_message_json_dict['body']['contents'][0]['contents'][5]['contents'][1]['text'] = emotion_confused
-    flex_message_json_dict['body']['contents'][0]['contents'][6]['contents'][1]['text'] = emotion_disgusted
-    flex_message_json_dict['body']['contents'][0]['contents'][7]['contents'][1]['text'] = emotion_angry
-    flex_message_json_dict['body']['contents'][0]['contents'][8]['contents'][1]['text'] = emotion_sad
-
-    flex_message_json_dict['body']['contents'][0]['contents'][1]['contents'][2]['text'] = happy_score
-    flex_message_json_dict['body']['contents'][0]['contents'][2]['contents'][2]['text'] = calm_score
-    flex_message_json_dict['body']['contents'][0]['contents'][3]['contents'][2]['text'] = surprised_score
-    flex_message_json_dict['body']['contents'][0]['contents'][4]['contents'][2]['text'] = fear_score
-    flex_message_json_dict['body']['contents'][0]['contents'][5]['contents'][2]['text'] = confused_score
-    flex_message_json_dict['body']['contents'][0]['contents'][6]['contents'][2]['text'] = disgusted_score
-    flex_message_json_dict['body']['contents'][0]['contents'][7]['contents'][2]['text'] = angry_score
-    flex_message_json_dict['body']['contents'][0]['contents'][8]['contents'][2]['text'] = sad_score
-    flex_message_json_dict['body']['contents'][0]['contents'][9]['contents'][2]['text'] = combat_power
-
-    return flex_message_json_dict
-
-
-def get_dynamo_table(table_name):
-    session = Session(
-        region_name='ap-northeast-1'
-    )
-
-    dynamodb = session.resource('dynamodb')
-    dynamo_table = dynamodb.Table(table_name)
-    return dynamo_table
-
-# DyanmoDBはfloat 型に対応していない
-# decimal に変換する必要があるが、データはそのまま残しておきたい
-
-
-def emotions_conv(emotions):
-    len_emotions = len(emotions)
-    for cnt_i in range(len_emotions):
-        emotions[cnt_i]['Confidence'] = decimal.Decimal(
-            str(round(emotions[cnt_i]['Confidence'], 3)))
-    return emotions
-
-
-def emo_json(emotions):
-    emotion_items = {}
-
-    for emotion in emotions:
-        emotion_value = round(emotion['Confidence'], 3)
-        emotion_score = str(emotion_value*level)
-        emotion_items[emotion['Type']] = emotion_score
-
-    return emotion_items
